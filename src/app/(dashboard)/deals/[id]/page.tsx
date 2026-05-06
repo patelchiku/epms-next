@@ -32,9 +32,14 @@ export default function DealDetailPage() {
   if (loading) return <div className="p-10 text-center text-slate-400">Loading...</div>;
   if (!deal) return <div className="p-10 text-center text-slate-400">Deal not found</div>;
 
-  const totalPaid = deal.payments?.reduce((sum: number, p: any) => sum + (Number(p.amount) || 0), 0) || 0;
-  const dealAmount = Number(deal.dealAmount) || 0;
-  const balancePct = dealAmount > 0 ? Math.min((totalPaid / dealAmount) * 100, 100) : 0;
+  const parseAmount = (v: any) => {
+    if (!v) return 0;
+    const n = Number(String(v).replace(/,/g, ""));
+    return isNaN(n) ? 0 : n;
+  };
+  const totalPaid = deal.payments?.reduce((sum: number, p: any) => sum + parseAmount(p.amount), 0) || 0;
+  const dealAmountNum = parseAmount(deal.dealAmount);
+  const balancePct = dealAmountNum > 0 ? Math.min((totalPaid / dealAmountNum) * 100, 100) : 0;
 
   return (
     <div>
@@ -62,7 +67,7 @@ export default function DealDetailPage() {
               </div>
               {deal.dealAmount && (
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-emerald-600">₹{Number(deal.dealAmount).toLocaleString("en-IN")}</p>
+                  <p className="text-2xl font-bold text-emerald-600">₹{deal.dealAmount}</p>
                   <p className="text-xs text-slate-400">Deal Amount</p>
                 </div>
               )}
@@ -103,11 +108,13 @@ export default function DealDetailPage() {
                   <IndianRupee className="w-4 h-4 text-violet-500" /> Payment Schedule
                 </h3>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-emerald-600">₹{totalPaid.toLocaleString("en-IN")} paid</p>
-                  {dealAmount > 0 && <p className="text-xs text-slate-400">of ₹{dealAmount.toLocaleString("en-IN")}</p>}
+                  <p className="text-sm font-bold text-emerald-600">
+                    {totalPaid > 0 ? `₹${totalPaid.toLocaleString("en-IN")}` : deal.payments?.length + " installments"} paid
+                  </p>
+                  {deal.dealAmount && <p className="text-xs text-slate-400">of ₹{deal.dealAmount}</p>}
                 </div>
               </div>
-              {dealAmount > 0 && (
+              {dealAmountNum > 0 && (
                 <div className="mb-5">
                   <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full transition-all"
@@ -123,7 +130,7 @@ export default function DealDetailPage() {
                       {i + 1}
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-slate-800 text-sm">₹{Number(p.amount).toLocaleString("en-IN")}</p>
+                      <p className="font-semibold text-slate-800 text-sm">₹{p.amount}</p>
                       {p.remark && <p className="text-xs text-slate-500">{p.remark}</p>}
                     </div>
                     <div className="text-right">
@@ -153,12 +160,12 @@ export default function DealDetailPage() {
             <div className="space-y-2.5 text-sm">
               <InfoRow label="Deal ID" value={`#${deal.id}`} />
               <InfoRow label="Deal Date" value={deal.dealDate ? formatDate(deal.dealDate) : "—"} />
-              <InfoRow label="Deal Amount" value={deal.dealAmount ? `₹${Number(deal.dealAmount).toLocaleString("en-IN")}` : "—"} highlight />
+              <InfoRow label="Deal Amount" value={deal.dealAmount ? `₹${deal.dealAmount}` : "—"} highlight />
               <InfoRow label="Commission" value={deal.commission || "—"} />
               <InfoRow label="Employee" value={deal.employee ? `${deal.employee.firstName} ${deal.employee.lastName}` : "—"} />
-              <InfoRow label="Total Paid" value={`₹${totalPaid.toLocaleString("en-IN")}`} />
-              {dealAmount > 0 && (
-                <InfoRow label="Balance" value={`₹${(dealAmount - totalPaid).toLocaleString("en-IN")}`} />
+              <InfoRow label="Total Paid" value={totalPaid > 0 ? `₹${totalPaid.toLocaleString("en-IN")}` : "—"} />
+              {dealAmountNum > 0 && (
+                <InfoRow label="Balance" value={`₹${(dealAmountNum - totalPaid).toLocaleString("en-IN")}`} />
               )}
             </div>
           </div>

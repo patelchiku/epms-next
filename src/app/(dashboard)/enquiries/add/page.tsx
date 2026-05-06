@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -34,12 +34,25 @@ type FormData = z.infer<typeof schema>;
 
 export default function AddEnquiryPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [masters, setMasters] = useState<Record<string, any[]>>({});
   const [saving, setSaving] = useState(false);
 
-  const { register, handleSubmit, control, watch, formState: { errors } } = useForm<FormData>({
+  // Pre-fill from URL params (coming from portal lead "Add" button)
+  const prefillName   = searchParams.get("name")   ?? "";
+  const prefillMobile = searchParams.get("mobile") ?? "";
+  const prefillEmail  = searchParams.get("email")  ?? "";
+  const prefillRemark = searchParams.get("remark") ?? "";
+
+  const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema) as any,
-    defaultValues: { mobileNos: [{ value: "" }], forType: 1 },
+    defaultValues: {
+      clientName: prefillName,
+      mobileNos:  prefillMobile ? [{ value: prefillMobile }] : [{ value: "" }],
+      email:      prefillEmail,
+      remark:     prefillRemark,
+      forType:    1,
+    },
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: "mobileNos" });

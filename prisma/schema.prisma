@@ -444,3 +444,15 @@ model AcresEnquiry {
 
   @@map("epms_99acr_enquiry")
 }
+
+// ─── APP SETTINGS ─────────────────────────────────────────────────────────────
+
+model AppSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique @db.VarChar(100)
+  value     String   @db.Text
+  label     String   @db.VarChar(200)
+  updatedAt DateTime @updatedAt
+
+  @@map("he_app_settings")
+}

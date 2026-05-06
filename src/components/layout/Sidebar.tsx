@@ -8,7 +8,7 @@ import {
   LayoutDashboard, FileText, Home, Settings, ChevronDown,
   LogOut, Menu, X, MapPin, Building2, Layers, Tag, Briefcase,
   DollarSign, Target, AlertCircle, Activity, UserCog, Users,
-  Handshake, CheckCircle2, Ruler, Sofa, Hash, List
+  Handshake, CheckCircle2, Ruler, Sofa, Hash, List, SlidersHorizontal
 } from "lucide-react";
 import { useState } from "react";
 
@@ -39,6 +39,7 @@ const navigation = [
   },
   { name: "Users",     href: "/users",     icon: Users },
   { name: "Approvals", href: "/approvals", icon: CheckCircle2 },
+  { name: "Settings",  href: "/settings",  icon: SlidersHorizontal },
 ];
 
 export default function Sidebar() {

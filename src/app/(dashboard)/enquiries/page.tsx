@@ -102,14 +102,14 @@ export default function EnquiriesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="table-th">#</th>
+                  <th className="table-th w-10">#</th>
                   <th className="table-th">Client</th>
                   <th className="table-th">Mobile</th>
                   <th className="table-th">Type / For</th>
                   <th className="table-th">Source</th>
                   <th className="table-th">Status</th>
                   <th className="table-th">NFD</th>
-                  <th className="table-th text-right">Actions</th>
+                  <th className="table-th w-24 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">

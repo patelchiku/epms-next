@@ -1,0 +1,122 @@
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { stringifyMobiles } from "@/lib/utils";
+
+const createSchema = z.object({
+  clientName: z.string().min(1),
+  mobileNos: z.array(z.string()).min(1),
+  email: z.string().email().optional().or(z.literal("")),
+  forType: z.number().int().min(1).max(2).default(1),
+  propertyTypeId: z.number().int().optional().nullable(),
+  segmentId: z.number().int().optional().nullable(),
+  bhkOfficeId: z.number().int().optional().nullable(),
+  budget: z.string().optional(),
+  sourceId: z.number().int().optional().nullable(),
+  statusId: z.number().int().optional().nullable(),
+  isNonUse: z.boolean().default(false),
+  nonUseId: z.number().int().optional().nullable(),
+  isDraft: z.boolean().default(false),
+  draftReasonId: z.number().int().optional().nullable(),
+  remark: z.string().optional(),
+  nfd: z.string().optional(),
+  areaId: z.number().int().optional().nullable(),
+});
+
+export async function GET(req: NextRequest) {
+  const session = await auth();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const user = session.user as any;
+  const { searchParams } = req.nextUrl;
+  const page = Number(searchParams.get("page") || 1);
+  const pageSize = Number(searchParams.get("pageSize") || 20);
+  const filter = searchParams.get("filter");
+  const search = searchParams.get("search") || "";
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const dayAfter = new Date(tomorrow);
+  dayAfter.setDate(dayAfter.getDate() + 1);
+
+  const userFilter = user.roleId === 1 ? {} : { userId: Number(user.id) };
+
+  let dateFilter = {};
+  if (filter === "today") dateFilter = { nfd: { gte: today, lt: tomorrow } };
+  else if (filter === "tomorrow") dateFilter = { nfd: { gte: tomorrow, lt: dayAfter } };
+  else if (filter === "pending") dateFilter = { nfd: { lt: today } };
+
+  const where: any = {
+    ...userFilter,
+    ...dateFilter,
+    isNonUse: false,
+    isDraft: false,
+    ...(search && {
+      OR: [
+        { clientName: { contains: search } },
+        { mobileNos: { contains: search } },
+        { email: { contains: search } },
+      ],
+    }),
+  };
+
+  const [data, total] = await Promise.all([
+    prisma.enquiry.findMany({
+      where,
+      orderBy: { addedAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: {
+        source: { select: { name: true } },
+        status: { select: { name: true } },
+        propertyType: { select: { name: true } },
+        segment: { select: { name: true } },
+        bhkOffice: { select: { name: true } },
+        area: { select: { name: true } },
+        user: { select: { firstName: true, lastName: true } },
+      },
+    }),
+    prisma.enquiry.count({ where }),
+  ]);
+
+  return NextResponse.json({ data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) });
+}
+
+export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const user = session.user as any;
+  const body = await req.json();
+  const parsed = createSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+
+  const d = parsed.data;
+  const enquiry = await prisma.enquiry.create({
+    data: {
+      clientName: d.clientName,
+      mobileNos: stringifyMobiles(d.mobileNos),
+      email: d.email || null,
+      forType: d.forType,
+      propertyTypeId: d.propertyTypeId || null,
+      segmentId: d.segmentId || null,
+      bhkOfficeId: d.bhkOfficeId || null,
+      budget: d.budget || null,
+      sourceId: d.sourceId || null,
+      statusId: d.statusId || null,
+      isNonUse: d.isNonUse,
+      nonUseId: d.nonUseId || null,
+      isDraft: d.isDraft,
+      draftReasonId: d.draftReasonId || null,
+      remark: d.remark || null,
+      nfd: d.nfd ? new Date(d.nfd) : null,
+      areaId: d.areaId || null,
+      userId: Number(user.id),
+    },
+  });
+
+  return NextResponse.json({ success: true, data: enquiry }, { status: 201 });
+}

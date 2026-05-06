@@ -1,0 +1,10 @@
+{
+  "buildCommand": "npx prisma generate && npm run build",
+  "framework": "nextjs",
+  "regions": ["bom1"],
+  "env": {
+    "DATABASE_URL": "@database-url",
+    "AUTH_SECRET": "@auth-secret",
+    "NEXTAUTH_URL": "@nextauth-url"
+  }
+}

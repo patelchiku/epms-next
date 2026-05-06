@@ -1,0 +1,446 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── USERS & AUTH ────────────────────────────────────────────────────────────
+
+model User {
+  id          Int      @id @default(autoincrement()) @map("userid")
+  firstName   String   @map("u_firstname") @db.VarChar(100)
+  lastName    String   @map("u_lastname") @db.VarChar(100)
+  email       String   @map("u_email") @db.VarChar(150)
+  mobile      String   @unique @map("u_mobile") @db.VarChar(15)
+  password    String   @map("u_password") @db.VarChar(255)
+  dateOfJoin  DateTime @default(now()) @map("u_dateofjoin")
+  roleId      Int      @map("u_role")
+  isPresent   Boolean  @default(true) @map("u_ispresent")
+  profilePic  String?  @map("u_profile") @db.VarChar(255)
+
+  role        Role               @relation(fields: [roleId], references: [id])
+  approvals   UserApproval[]
+  logs        UserLog[]
+  enquiries   Enquiry[]
+  comments    EnquiryComment[]
+  properties  Property[]
+  deals       PropertyDeal[]
+  payments    PropertyDealPayment[]
+
+  @@map("he_users")
+}
+
+model UserApproval {
+  id        Int     @id @default(autoincrement()) @map("userapprovalid")
+  userId    Int     @map("ua_userid")
+  ipAddress String  @map("ua_ipaddress") @db.VarChar(50)
+  address   String? @map("ua_address") @db.VarChar(500)
+  date      String  @map("ua_date") @db.VarChar(20)
+  time      String  @map("ua_time") @db.VarChar(20)
+  approved  Int     @default(0) @map("ua_approved")
+
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@map("he_userapproval")
+}
+
+model UserLog {
+  id        Int      @id @default(autoincrement())
+  comment   String   @map("u_comment") @db.VarChar(500)
+  userId    Int      @map("u_userid")
+  createdAt DateTime @default(now()) @map("WhenAdded")
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("he_userlog")
+}
+
+// ─── ROLES & MENU ACCESS ─────────────────────────────────────────────────────
+
+model Role {
+  id     Int    @id @default(autoincrement()) @map("roleid")
+  name   String @map("r_name") @db.VarChar(100)
+  active Boolean @default(true) @map("r_active")
+
+  users  User[]
+
+  @@map("he_role")
+}
+
+model Menu {
+  id     Int    @id @default(autoincrement()) @map("menuid")
+  name   String @map("m_name") @db.VarChar(100)
+  href   String @map("m_href") @db.VarChar(200)
+  icon   String @map("m_icon") @db.VarChar(100)
+  isMain Int?   @map("m_ismain")
+
+  @@map("he_menu")
+}
+
+model UserAccess {
+  id     Int @id @default(autoincrement())
+  roleId Int @map("ua_roleid")
+  mainId Int @map("ua_mainid")
+  subId  Int @map("ua_subid")
+
+  @@map("he_useraccess")
+}
+
+// ─── MASTER DATA ─────────────────────────────────────────────────────────────
+
+model Area {
+  id         Int        @id @default(autoincrement()) @map("areaid")
+  name       String     @map("a_name") @db.VarChar(200)
+  active     Boolean    @default(true) @map("a_active")
+
+  enquiries  Enquiry[]
+  properties Property[]
+
+  @@map("he_areas")
+}
+
+model Building {
+  id         Int        @id @default(autoincrement()) @map("buildingid")
+  name       String     @map("bld_name") @db.VarChar(200)
+  active     Boolean    @default(true) @map("bld_active")
+
+  properties Property[]
+
+  @@map("he_buildings")
+}
+
+model PropertyType {
+  id         Int        @id @default(autoincrement()) @map("propertytypeid")
+  name       String     @map("pt_name") @db.VarChar(100)
+  active     Boolean    @default(true) @map("pt_active")
+
+  enquiries  Enquiry[]
+  properties Property[]
+
+  @@map("he_propertytype")
+}
+
+model Segment {
+  id         Int        @id @default(autoincrement()) @map("segmentid")
+  name       String     @map("s_name") @db.VarChar(100)
+  active     Boolean    @default(true) @map("s_active")
+
+  enquiries  Enquiry[]
+  properties Property[]
+
+  @@map("he_segment")
+}
+
+model BhkOffice {
+  id         Int        @id @default(autoincrement()) @map("bhkofficeid")
+  name       String     @map("bo_name") @db.VarChar(100)
+  active     Boolean    @default(true) @map("bo_active")
+
+  enquiries  Enquiry[]
+  properties Property[]
+
+  @@map("he_bhkoffice")
+}
+
+model Budget {
+  id     Int     @id @default(autoincrement()) @map("budgetid")
+  name   String  @map("b_name") @db.VarChar(100)
+  active Boolean @default(true) @map("b_active")
+
+  @@map("he_budget")
+}
+
+model Source {
+  id         Int        @id @default(autoincrement()) @map("sourceid")
+  name       String     @map("su_name") @db.VarChar(100)
+  active     Boolean    @default(true) @map("su_active")
+
+  enquiries  Enquiry[]
+  properties Property[]
+
+  @@map("he_source")
+}
+
+model EnquiryStatus {
+  id        Int       @id @default(autoincrement()) @map("enquirystatusid")
+  name      String    @map("es_name") @db.VarChar(100)
+  active    Boolean   @default(true) @map("es_active")
+
+  enquiries Enquiry[]
+
+  @@map("he_enquirystatus")
+}
+
+model PropertyStatus {
+  id         Int        @id @default(autoincrement()) @map("propertystatusid")
+  name       String     @map("ps_name") @db.VarChar(100)
+  active     Boolean    @default(true) @map("ps_active")
+
+  properties Property[]
+
+  @@map("he_propertystatus")
+}
+
+model Activity {
+  id       Int      @id @default(autoincrement()) @map("activityid")
+  name     String   @map("a_name") @db.VarChar(200)
+  isParent Int?     @map("a_isparent")
+  active   Boolean  @default(true) @map("a_active")
+
+  comments EnquiryComment[]
+
+  @@map("he_activity")
+}
+
+model Furniture {
+  id         Int        @id @default(autoincrement()) @map("furnitureid")
+  name       String     @map("f_name") @db.VarChar(100)
+  active     Boolean    @default(true) @map("f_active")
+
+  properties Property[]
+
+  @@map("he_furniture")
+}
+
+model Measurement {
+  id         Int        @id @default(autoincrement()) @map("measurementid")
+  name       String     @map("m_name") @db.VarChar(100)
+  active     Boolean    @default(true) @map("m_active")
+
+  properties Property[]
+
+  @@map("he_measurement")
+}
+
+model MinMax {
+  id     Int     @id @default(autoincrement()) @map("minmaxid")
+  name   String  @map("mm_name") @db.VarChar(200)
+  active Boolean @default(true) @map("mm_active")
+
+  @@map("he_minmax")
+}
+
+model Price {
+  id     Int     @id @default(autoincrement()) @map("priceid")
+  name   String  @map("pr_name") @db.VarChar(200)
+  active Boolean @default(true) @map("pr_active")
+
+  @@map("he_price")
+}
+
+model NonUse {
+  id        Int       @id @default(autoincrement()) @map("nonuseid")
+  name      String    @map("nu_name") @db.VarChar(200)
+  active    Boolean   @default(true) @map("nu_active")
+
+  enquiries Enquiry[]
+
+  @@map("he_nonuse")
+}
+
+model DraftReason {
+  id        Int       @id @default(autoincrement()) @map("draftreasonid")
+  name      String    @map("dr_name") @db.VarChar(200)
+  active    Boolean   @default(true) @map("dr_active")
+
+  enquiries Enquiry[]
+
+  @@map("he_draftreason")
+}
+
+model Purpose {
+  id     Int     @id @default(autoincrement()) @map("purposeid")
+  name   String  @map("pu_name") @db.VarChar(200)
+  active Boolean @default(true) @map("pu_active")
+
+  @@map("he_purpose")
+}
+
+// ─── ENQUIRY ─────────────────────────────────────────────────────────────────
+
+model Enquiry {
+  id             Int       @id @default(autoincrement()) @map("enquiryid")
+  clientName     String    @map("e_nameofclient") @db.VarChar(200)
+  mobileNos      String    @map("e_mobileno") @db.Text
+  email          String?   @map("e_email") @db.VarChar(200)
+  forType        Int       @default(1) @map("e_for")
+  propertyTypeId Int?      @map("e_propertytype")
+  segmentId      Int?      @map("e_segment")
+  bhkOfficeId    Int?      @map("e_bhkoffice")
+  budget         String?   @map("e_budget") @db.VarChar(200)
+  sourceId       Int?      @map("e_source")
+  statusId       Int?      @map("e_status")
+  isNonUse       Boolean   @default(false) @map("e_nonuse")
+  nonUseId       Int?      @map("e_nonuseid")
+  isDraft        Boolean   @default(false) @map("e_draft")
+  draftReasonId  Int?      @map("e_draftreason")
+  remark         String?   @map("e_remark") @db.Text
+  nfd            DateTime? @map("e_nfd")
+  areaId         Int?      @map("e_areaid")
+  addedAt        DateTime  @default(now()) @map("e_addedat")
+  userId         Int       @map("e_user")
+  allotedBy      Int?      @map("e_allotedby")
+
+  user           User           @relation(fields: [userId], references: [id])
+  propertyType   PropertyType?  @relation(fields: [propertyTypeId], references: [id])
+  segment        Segment?       @relation(fields: [segmentId], references: [id])
+  bhkOffice      BhkOffice?     @relation(fields: [bhkOfficeId], references: [id])
+  source         Source?        @relation(fields: [sourceId], references: [id])
+  status         EnquiryStatus? @relation(fields: [statusId], references: [id])
+  nonUse         NonUse?        @relation(fields: [nonUseId], references: [id])
+  draftReason    DraftReason?   @relation(fields: [draftReasonId], references: [id])
+  area           Area?          @relation(fields: [areaId], references: [id])
+  comments       EnquiryComment[]
+
+  @@map("he_enquiry")
+}
+
+model EnquiryComment {
+  id         Int       @id @default(autoincrement()) @map("commentid")
+  enquiryId  Int       @map("ec_enquiryid")
+  userId     Int       @map("ec_userid")
+  activityId Int?      @map("ec_activityid")
+  remark     String    @map("ec_remark") @db.Text
+  nfd        DateTime? @map("ec_nfd")
+  createdAt  DateTime  @default(now()) @map("WhenAdded")
+
+  enquiry    Enquiry   @relation(fields: [enquiryId], references: [id])
+  user       User      @relation(fields: [userId], references: [id])
+  activity   Activity? @relation(fields: [activityId], references: [id])
+
+  @@map("he_enquiry_comment")
+}
+
+// ─── PROPERTY ────────────────────────────────────────────────────────────────
+
+model Property {
+  id               Int     @id @default(autoincrement()) @map("propertyid")
+  userId           Int     @map("p_userid")
+  forType          Int     @default(1) @map("p_for")
+  availableFrom    String? @map("p_avialblefrom") @db.VarChar(50)
+  propertyTypeId   Int?    @map("p_propertytypeid")
+  segmentId        Int?    @map("p_segmentid")
+  bhkOfficeId      Int?    @map("p_bhkofficeid")
+  buildingId       Int?    @map("p_buildingid")
+  areaId           Int?    @map("p_areaid")
+  address          String? @map("p_address") @db.VarChar(500)
+  block            String? @map("p_block") @db.VarChar(100)
+  flatNumber       String? @map("p_flatnumber") @db.VarChar(100)
+  superBuiltUp     String? @map("p_superbuiltup") @db.VarChar(50)
+  carpet           String? @map("p_carpet") @db.VarChar(50)
+  constructionArea String? @map("p_constuctionorterrace") @db.VarChar(50)
+  measurementId    Int?    @map("p_measurement")
+  furnitureId      Int?    @map("p_furniture")
+  parking          String? @map("p_parking") @db.VarChar(100)
+  keyStatus        String? @map("p_keystatus") @db.VarChar(100)
+  price            String? @map("p_price") @db.VarChar(200)
+  commission       String? @map("p_comission") @db.VarChar(100)
+  ownerName        String? @map("p_ownername") @db.VarChar(200)
+  ownerMobile      String? @map("p_mobile") @db.VarChar(15)
+  otherMobiles     String? @map("p_othermoileumer") @db.Text
+  sourceId         Int?    @map("p_source")
+  statusId         Int?    @map("p_status")
+  addedAt          DateTime @default(now()) @map("p_addedat")
+  remark           String? @map("p_remark") @db.Text
+  image            String? @map("p_image") @db.VarChar(255)
+
+  user         User           @relation(fields: [userId], references: [id])
+  propertyType PropertyType?  @relation(fields: [propertyTypeId], references: [id])
+  segment      Segment?       @relation(fields: [segmentId], references: [id])
+  bhkOffice    BhkOffice?     @relation(fields: [bhkOfficeId], references: [id])
+  building     Building?      @relation(fields: [buildingId], references: [id])
+  area         Area?          @relation(fields: [areaId], references: [id])
+  measurement  Measurement?   @relation(fields: [measurementId], references: [id])
+  furniture    Furniture?     @relation(fields: [furnitureId], references: [id])
+  source       Source?        @relation(fields: [sourceId], references: [id])
+  status       PropertyStatus? @relation(fields: [statusId], references: [id])
+
+  @@map("epms_property")
+}
+
+// ─── PROPERTY DEAL ───────────────────────────────────────────────────────────
+
+model PropertyDeal {
+  id             Int      @id @default(autoincrement()) @map("PropertyDealId")
+  type           String?  @map("PD_Type") @db.VarChar(100)
+  forType        String?  @map("PD_For") @db.VarChar(50)
+  employeeId     Int?     @map("PD_Employee")
+  dealDate       String?  @map("PD_Date") @db.VarChar(50)
+  possessionDate String?  @map("PD_PossessionDate") @db.VarChar(50)
+  propertyName   String?  @map("PD_PropertyName") @db.VarChar(300)
+  flatOffice     String?  @map("PD_FlatOffice") @db.VarChar(100)
+  ownerName      String?  @map("PD_OwnerName") @db.VarChar(200)
+  ownerNumber    String?  @map("PD_OwnerNumber") @db.VarChar(15)
+  propertySource Int?     @map("PD_PropertySource")
+  buyerName      String?  @map("PD_BuyerName") @db.VarChar(200)
+  buyerNumber    String?  @map("PD_BuyerNumber") @db.VarChar(15)
+  buyerSource    Int?     @map("PD_BuyerSource")
+  bhkOffice      String?  @map("PD_BhkOffice") @db.VarChar(100)
+  sqft           String?  @map("PD_Sqft") @db.VarChar(50)
+  dealAmount     String?  @map("PD_DealAmount") @db.VarChar(100)
+  brokerageOwner String?  @map("PD_BrokerageOwnerBuilder") @db.VarChar(100)
+  brokerageClient String? @map("PD_BrokerageClient") @db.VarChar(100)
+  remark         String?  @map("PD_Remark") @db.Text
+  addedBy        Int?     @map("PD_AddedBy")
+  createdAt      DateTime @default(now()) @map("WhenAdded")
+
+  employee  User?                 @relation(fields: [employeeId], references: [id])
+  payments  PropertyDealPayment[]
+
+  @@map("epms_property_deal")
+}
+
+model PropertyDealPayment {
+  id          Int      @id @default(autoincrement()) @map("PDPID")
+  dealId      Int      @map("PDP_PropertyDealID")
+  paymentType String?  @map("PDP_PaymentOption") @db.VarChar(100)
+  amount      String?  @map("PDP_Amount") @db.VarChar(100)
+  date        String?  @map("PDP_Date") @db.VarChar(50)
+  remark      String?  @map("PDP_Remark") @db.Text
+  bankRemark  String?  @map("PDP_BankRemark") @db.VarChar(500)
+  userId      Int?     @map("PDP_User")
+  createdAt   DateTime @default(now()) @map("WhenAdded")
+
+  deal PropertyDeal @relation(fields: [dealId], references: [id])
+  user User?        @relation(fields: [userId], references: [id])
+
+  @@map("epms_property_deal_payments")
+}
+
+// ─── THIRD-PARTY LEAD INTEGRATIONS ───────────────────────────────────────────
+
+model HousingEnquiry {
+  id             Int      @id @default(autoincrement())
+  leadName       String?  @map("lead_name") @db.VarChar(200)
+  leadEmail      String?  @map("lead_email") @db.VarChar(200)
+  leadPhone      String?  @map("lead_phone") @db.VarChar(20)
+  apartmentNames String?  @map("apartment_names") @db.VarChar(500)
+  serviceType    String?  @map("service_type") @db.VarChar(100)
+  categoryType   String?  @map("category_type") @db.VarChar(100)
+  localityName   String?  @map("locality_name") @db.VarChar(200)
+  cityName       String?  @map("city_name") @db.VarChar(100)
+  flatId         String?  @map("flat_id") @db.VarChar(100)
+  leadDate       String?  @map("lead_date") @db.VarChar(50)
+  minPrice       String?  @map("min_price") @db.VarChar(50)
+  maxPrice       String?  @map("max_price") @db.VarChar(50)
+  isRemoved      Boolean  @default(false) @map("lead_remove")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("epms_housing_enquiry")
+}
+
+model AcresEnquiry {
+  id          Int      @id @default(autoincrement())
+  name        String?  @map("Name") @db.VarChar(200)
+  email       String?  @map("Email") @db.VarChar(200)
+  phone       String?  @map("Phone") @db.VarChar(20)
+  user        String?  @map("User") @db.VarChar(200)
+  description String?  @map("Description") @db.Text
+  addedAt     DateTime @default(now()) @map("AddedAt")
+  isRemoved   Boolean  @default(false) @map("IsRemoved")
+
+  @@map("epms_99acr_enquiry")
+}

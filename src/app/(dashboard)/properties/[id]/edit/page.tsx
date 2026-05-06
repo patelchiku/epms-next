@@ -23,14 +23,14 @@ export default function EditPropertyPage() {
   useEffect(() => {
     const resources = ["property-types", "segments", "bhk-office", "buildings", "areas", "sources", "property-statuses", "furniture", "measurements"];
     Promise.all([
-      axios.get(`/api/properties/${id}`),
-      ...resources.map((r) => axios.get(`/api/master/${r}`)),
-    ]).then(([propRes, ...masterRes]) => {
+      fetch(`/api/properties/${id}`).then((r) => r.json()),
+      ...resources.map((r) => fetch(`/api/master/${r}`).then((res) => res.json())),
+    ]).then(([propData, ...masterRes]) => {
       const map: Record<string, any[]> = {};
-      resources.forEach((r, i) => { map[r] = masterRes[i].data; });
+      resources.forEach((r, i) => { map[r] = Array.isArray(masterRes[i]) ? masterRes[i] : []; });
       setMasters(map);
 
-      const p = propRes.data;
+      const p = propData;
       let mobiles: string[] = [];
       try { mobiles = typeof p.otherMobiles === "string" ? JSON.parse(p.otherMobiles) : p.otherMobiles ?? []; }
       catch { mobiles = []; }

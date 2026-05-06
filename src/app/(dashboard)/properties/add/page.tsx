@@ -20,11 +20,11 @@ export default function AddPropertyPage() {
 
   useEffect(() => {
     const resources = ["property-types", "segments", "bhk-office", "buildings", "areas", "sources", "property-statuses", "furniture", "measurements"];
-    Promise.all(resources.map((r) => axios.get(`/api/master/${r}`))).then((results) => {
+    Promise.all(resources.map((r) => fetch(`/api/master/${r}`).then((res) => res.json()))).then((results) => {
       const map: Record<string, any[]> = {};
-      resources.forEach((r, i) => { map[r] = results[i].data; });
+      resources.forEach((r, i) => { map[r] = Array.isArray(results[i]) ? results[i] : []; });
       setMasters(map);
-    });
+    }).catch(console.error);
   }, []);
 
   async function onSubmit(data: any) {

@@ -25,14 +25,14 @@ export default function EditEnquiryPage() {
   useEffect(() => {
     const resources = ["property-types", "segments", "bhk-office", "sources", "statuses", "areas", "budget", "non-use", "draft-reasons"];
     Promise.all([
-      axios.get(`/api/enquiries/${id}`),
-      ...resources.map((r) => axios.get(`/api/master/${r}`)),
-    ]).then(([enqRes, ...masterRes]) => {
+      fetch(`/api/enquiries/${id}`).then((r) => r.json()),
+      ...resources.map((r) => fetch(`/api/master/${r}`).then((res) => res.json())),
+    ]).then(([enqData, ...masterRes]) => {
       const map: Record<string, any[]> = {};
-      resources.forEach((r, i) => { map[r] = masterRes[i].data; });
+      resources.forEach((r, i) => { map[r] = Array.isArray(masterRes[i]) ? masterRes[i] : []; });
       setMasters(map);
 
-      const e = enqRes.data;
+      const e = enqData;
       let mobiles: string[] = [];
       try { mobiles = typeof e.mobileNos === "string" ? JSON.parse(e.mobileNos) : e.mobileNos ?? []; }
       catch { mobiles = []; }

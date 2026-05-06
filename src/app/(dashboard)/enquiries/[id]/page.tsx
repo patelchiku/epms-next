@@ -24,11 +24,11 @@ export default function EnquiryDetailPage() {
 
   useEffect(() => {
     Promise.all([
-      axios.get(`/api/enquiries/${id}`),
-      axios.get("/api/master/activities"),
-    ]).then(([eq, act]) => {
-      setEnquiry(eq.data);
-      setActivities(act.data);
+      fetch(`/api/enquiries/${id}`).then((r) => r.json()),
+      fetch("/api/master/activities").then((r) => r.json()),
+    ]).then(([enqData, actData]) => {
+      setEnquiry(enqData);
+      setActivities(Array.isArray(actData) ? actData : []);
     }).catch(() => toast.error("Failed to load"))
       .finally(() => setLoading(false));
   }, [id]);

@@ -20,11 +20,11 @@ export default function EditUserPage() {
 
   useEffect(() => {
     Promise.all([
-      axios.get(`/api/users/${id}`),
-      axios.get("/api/master/roles"),
-    ]).then(([userRes, rolesRes]) => {
-      setRoles(rolesRes.data);
-      const u = userRes.data;
+      fetch(`/api/users/${id}`).then((r) => r.json()),
+      fetch("/api/master/roles").then((r) => r.json()),
+    ]).then(([userData, rolesData]) => {
+      setRoles(Array.isArray(rolesData) ? rolesData : []);
+      const u = userData;
       reset({
         firstName: u.firstName,
         lastName: u.lastName ?? "",

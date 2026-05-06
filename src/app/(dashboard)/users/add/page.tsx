@@ -17,7 +17,7 @@ export default function AddUserPage() {
   const { register, handleSubmit, formState: { errors } } = useForm();
 
   useEffect(() => {
-    axios.get("/api/master/roles").then((r) => setRoles(r.data)).catch(() => {});
+    fetch("/api/master/roles").then((r) => r.json()).then((d) => setRoles(Array.isArray(d) ? d : [])).catch(console.error);
   }, []);
 
   async function onSubmit(data: any) {

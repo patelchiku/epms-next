@@ -58,9 +58,25 @@ export async function POST(req: NextRequest) {
 
     const user = session.user as any;
     const body = await req.json();
+    const toIntOrNull = (v: any) => (v === "" || v == null || isNaN(Number(v))) ? null : Number(v);
 
     const property = await prisma.property.create({
-      data: { ...body, userId: Number(user.id), addedAt: new Date() },
+      data: {
+        ...body,
+        forType: Number(body.forType) || 1,
+        propertyTypeId: toIntOrNull(body.propertyTypeId),
+        segmentId: toIntOrNull(body.segmentId),
+        bhkOfficeId: toIntOrNull(body.bhkOfficeId),
+        buildingId: toIntOrNull(body.buildingId),
+        areaId: toIntOrNull(body.areaId),
+        measurementId: toIntOrNull(body.measurementId),
+        furnitureId: toIntOrNull(body.furnitureId),
+        statusId: toIntOrNull(body.statusId),
+        sourceId: toIntOrNull(body.sourceId),
+        availableFrom: body.availableFrom ? new Date(body.availableFrom) : null,
+        userId: Number(user.id),
+        addedAt: new Date(),
+      },
     });
 
     return NextResponse.json({ success: true, data: property }, { status: 201 });

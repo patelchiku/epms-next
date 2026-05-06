@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import { formatDate, parseMobiles } from "@/lib/utils";
-import { Plus, Search, Filter, Phone, Eye, Edit, Trash2, MessageSquare } from "lucide-react";
+import { Plus, Search, Phone, Eye, Edit, Trash2, MessageSquare } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -16,11 +17,15 @@ const FILTER_TABS = [
 ];
 
 export default function EnquiriesPage() {
+  const searchParams = useSearchParams();
+  const initialFilter = searchParams.get("filter") ?? "";
+  const initialSearch = searchParams.get("search") ?? "";
+
   const [data, setData] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("");
+  const [search, setSearch] = useState(initialSearch);
+  const [filter, setFilter] = useState(initialFilter);
   const [loading, setLoading] = useState(true);
   const pageSize = 20;
 

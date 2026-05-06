@@ -11,9 +11,14 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
   const enquiry = await prisma.enquiry.findUnique({
     where: { id: Number(id) },
     include: {
-      source: true, status: true, propertyType: true,
-      segment: true, bhkOffice: true, area: true,
-      nonUse: true, draftReason: true,
+      source: { select: { id: true, name: true } },
+      status: { select: { id: true, name: true } },
+      propertyType: { select: { id: true, name: true } },
+      segment: { select: { id: true, name: true } },
+      bhkOffice: { select: { id: true, name: true } },
+      area: { select: { id: true, name: true } },
+      nonUse: { select: { id: true, name: true } },
+      draftReason: { select: { id: true, name: true } },
       user: { select: { id: true, firstName: true, lastName: true } },
       comments: {
         orderBy: { createdAt: "desc" },

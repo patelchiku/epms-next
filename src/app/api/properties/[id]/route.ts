@@ -10,9 +10,15 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
   const property = await prisma.property.findUnique({
     where: { id: Number(id) },
     include: {
-      building: true, area: true, propertyType: true,
-      segment: true, bhkOffice: true, status: true,
-      measurement: true, furniture: true, source: true,
+      building: { select: { id: true, name: true } },
+      area: { select: { id: true, name: true } },
+      propertyType: { select: { id: true, name: true } },
+      segment: { select: { id: true, name: true } },
+      bhkOffice: { select: { id: true, name: true } },
+      status: { select: { id: true, name: true } },
+      measurement: { select: { id: true, name: true } },
+      furniture: { select: { id: true, name: true } },
+      source: { select: { id: true, name: true } },
       user: { select: { id: true, firstName: true, lastName: true } },
     },
   });

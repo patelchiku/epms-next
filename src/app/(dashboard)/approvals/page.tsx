@@ -17,14 +17,21 @@ export default function ApprovalsPage() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(0); }, []);
 
-  async function fetchData() {
+  async function fetchData(attempt: number = 0) {
     try {
       const res = await axios.get("/api/approvals");
       setItems(res.data);
-    } catch { toast.error("Failed to load"); }
-    finally { setLoading(false); }
+      setLoading(false);
+    } catch {
+      if (attempt < 2) {
+        setTimeout(() => fetchData(attempt + 1), 1500);
+      } else {
+        toast.error("Failed to load");
+        setLoading(false);
+      }
+    }
   }
 
   async function handleAction(id: number, approved: number) {

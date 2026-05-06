@@ -24,7 +24,7 @@ export default function EnquiriesPage() {
   const [loading, setLoading] = useState(true);
   const pageSize = 20;
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (attempt = 0) => {
     setLoading(true);
     try {
       const res = await axios.get("/api/enquiries", {
@@ -32,10 +32,14 @@ export default function EnquiriesPage() {
       });
       setData(res.data.data);
       setTotal(res.data.total);
-    } catch {
-      toast.error("Failed to load enquiries");
-    } finally {
       setLoading(false);
+    } catch {
+      if (attempt < 2) {
+        setTimeout(() => fetchData(attempt + 1), 1500);
+      } else {
+        toast.error("Failed to load enquiries");
+        setLoading(false);
+      }
     }
   }, [page, search, filter]);
 

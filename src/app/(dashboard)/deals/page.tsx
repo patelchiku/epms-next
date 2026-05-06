@@ -15,14 +15,21 @@ export default function DealsPage() {
   const [loading, setLoading] = useState(true);
   const pageSize = 20;
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (attempt = 0) => {
     setLoading(true);
     try {
       const res = await axios.get("/api/deals", { params: { page, pageSize } });
       setData(res.data.data);
       setTotal(res.data.total);
-    } catch { toast.error("Failed to load"); }
-    finally { setLoading(false); }
+      setLoading(false);
+    } catch {
+      if (attempt < 2) {
+        setTimeout(() => fetchData(attempt + 1), 1500);
+      } else {
+        toast.error("Failed to load");
+        setLoading(false);
+      }
+    }
   }, [page]);
 
   useEffect(() => { fetchData(); }, [fetchData]);

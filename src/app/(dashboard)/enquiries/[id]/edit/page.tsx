@@ -23,14 +23,12 @@ export default function EditEnquiryPage() {
   const isNonUse = watch("isNonUse");
 
   useEffect(() => {
-    const resources = ["property-types", "segments", "bhk-office", "sources", "statuses", "areas", "budget", "non-use", "draft-reasons"];
+    const keys = "property-types,segments,bhk-office,sources,statuses,areas,budget,non-use,draft-reasons";
     Promise.all([
       fetch(`/api/enquiries/${id}`).then((r) => r.json()),
-      ...resources.map((r) => fetch(`/api/master/${r}`).then((res) => res.json())),
-    ]).then(([enqData, ...masterRes]) => {
-      const map: Record<string, any[]> = {};
-      resources.forEach((r, i) => { map[r] = Array.isArray(masterRes[i]) ? masterRes[i] : []; });
-      setMasters(map);
+      fetch(`/api/master/batch?keys=${keys}`).then((r) => r.json()),
+    ]).then(([enqData, masterData]) => {
+      setMasters(masterData);
 
       const e = enqData;
       let mobiles: string[] = [];

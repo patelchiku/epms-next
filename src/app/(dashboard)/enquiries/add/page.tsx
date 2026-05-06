@@ -45,12 +45,11 @@ export default function AddEnquiryPage() {
   const { fields, append, remove } = useFieldArray({ control, name: "mobileNos" });
 
   useEffect(() => {
-    const resources = ["property-types", "segments", "bhk-office", "sources", "statuses", "areas", "budget", "non-use", "draft-reasons"];
-    Promise.all(resources.map((r) => fetch(`/api/master/${r}`).then((res) => res.json()))).then((results) => {
-      const map: Record<string, any[]> = {};
-      resources.forEach((r, i) => { map[r] = Array.isArray(results[i]) ? results[i] : []; });
-      setMasters(map);
-    }).catch(console.error);
+    const keys = "property-types,segments,bhk-office,sources,statuses,areas,budget,non-use,draft-reasons";
+    fetch(`/api/master/batch?keys=${keys}`)
+      .then((r) => r.json())
+      .then((data) => setMasters(data))
+      .catch(console.error);
   }, []);
 
   const isDraft = watch("isDraft");

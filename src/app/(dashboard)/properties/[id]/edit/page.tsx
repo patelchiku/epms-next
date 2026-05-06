@@ -21,14 +21,12 @@ export default function EditPropertyPage() {
   const { fields, append, remove } = useFieldArray({ control, name: "otherMobiles" });
 
   useEffect(() => {
-    const resources = ["property-types", "segments", "bhk-office", "buildings", "areas", "sources", "property-statuses", "furniture", "measurements"];
+    const keys = "property-types,segments,bhk-office,buildings,areas,sources,property-statuses,furniture,measurements";
     Promise.all([
       fetch(`/api/properties/${id}`).then((r) => r.json()),
-      ...resources.map((r) => fetch(`/api/master/${r}`).then((res) => res.json())),
-    ]).then(([propData, ...masterRes]) => {
-      const map: Record<string, any[]> = {};
-      resources.forEach((r, i) => { map[r] = Array.isArray(masterRes[i]) ? masterRes[i] : []; });
-      setMasters(map);
+      fetch(`/api/master/batch?keys=${keys}`).then((r) => r.json()),
+    ]).then(([propData, masterData]) => {
+      setMasters(masterData);
 
       const p = propData;
       let mobiles: string[] = [];

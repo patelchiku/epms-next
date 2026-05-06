@@ -24,9 +24,12 @@ export default function EditEnquiryPage() {
 
   useEffect(() => {
     const keys = "property-types,segments,bhk-office,sources,statuses,areas,budget,non-use,draft-reasons";
+    const loadMasters = (attempt: number): Promise<Record<string, any[]>> =>
+      fetch(`/api/master/batch?keys=${keys}`).then((r) => r.json())
+        .then((d) => Object.keys(d).length > 0 ? d : (attempt < 2 ? new Promise(res => setTimeout(() => loadMasters(attempt + 1).then(res), 1500)) : {}));
     Promise.all([
       fetch(`/api/enquiries/${id}`).then((r) => r.json()),
-      fetch(`/api/master/batch?keys=${keys}`).then((r) => r.json()),
+      loadMasters(0),
     ]).then(([enqData, masterData]) => {
       setMasters(masterData);
 

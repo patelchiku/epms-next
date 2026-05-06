@@ -20,10 +20,12 @@ export default function AddPropertyPage() {
 
   useEffect(() => {
     const keys = "property-types,segments,bhk-office,buildings,areas,sources,property-statuses,furniture,measurements";
-    fetch(`/api/master/batch?keys=${keys}`)
-      .then((r) => r.json())
-      .then((data) => setMasters(data))
-      .catch(console.error);
+    const load = (attempt: number) =>
+      fetch(`/api/master/batch?keys=${keys}`)
+        .then((r) => r.json())
+        .then((data) => { if (Object.keys(data).length > 0) setMasters(data); else throw new Error("empty"); })
+        .catch(() => { if (attempt < 2) setTimeout(() => load(attempt + 1), 1500); });
+    load(0);
   }, []);
 
   async function onSubmit(data: any) {

@@ -21,10 +21,13 @@ export async function GET() {
 
     const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
     const xml = await res.text();
+    console.log("MB raw XML (first 500):", xml.slice(0, 500));
 
     const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@_" });
     const parsed = parser.parse(xml);
+    console.log("MB parsed root keys:", Object.keys(parsed ?? {}));
     const root = parsed?.leads;
+    console.log("MB root:", JSON.stringify(root)?.slice(0, 300));
     const rawLeads: any[] = root?.lead ? (Array.isArray(root.lead) ? root.lead : [root.lead]) : [];
 
     // Check which mobiles already exist in enquiries

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { createMd5 } from "@/lib/server-utils";
 import { authConfig } from "@/lib/auth.config";
+import { parsePermissions } from "@/lib/permissions";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -49,6 +50,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             mobile: user.mobile,
             roleId: user.roleId,
             roleName: user.role.name,
+            permissions: parsePermissions((user.role as any).permissions),
             profilePic: user.profilePic,
           };
         }
@@ -86,6 +88,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           mobile: user.mobile,
           roleId: user.roleId,
           roleName: user.role.name,
+          permissions: parsePermissions((user.role as any).permissions),
           profilePic: user.profilePic,
         };
       },
@@ -98,6 +101,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.mobile = (user as any).mobile;
         token.roleId = (user as any).roleId;
         token.roleName = (user as any).roleName;
+        token.permissions = (user as any).permissions;
         token.profilePic = (user as any).profilePic;
       }
       return token;
@@ -108,6 +112,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         (session.user as any).mobile = token.mobile;
         (session.user as any).roleId = token.roleId;
         (session.user as any).roleName = token.roleName;
+        (session.user as any).permissions = token.permissions;
         (session.user as any).profilePic = token.profilePic;
       }
       return session;

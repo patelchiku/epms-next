@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { stringifyMobiles } from "@/lib/utils";
+import { canDo } from "@/lib/permissions";
 
 const toIntOrNull = z.union([z.number().int(), z.string().transform(v => v === "" ? null : parseInt(v, 10))]).nullable().optional();
 const toBool = z.union([z.boolean(), z.string().transform(v => v === "true")]).optional();
@@ -30,6 +31,7 @@ const updateSchema = z.object({
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!canDo(session, "enquiry.view")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
   const enquiry = await prisma.enquiry.findUnique({
@@ -61,6 +63,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!canDo(session, "enquiry.edit")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   try {
     const { id } = await params;
@@ -102,6 +105,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!canDo(session, "enquiry.delete")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
   await prisma.enquiry.delete({ where: { id: Number(id) } });

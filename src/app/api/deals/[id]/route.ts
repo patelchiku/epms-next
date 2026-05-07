@@ -1,11 +1,13 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { canDo } from "@/lib/permissions";
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!canDo(session, "deals.view")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
     const deal = await prisma.propertyDeal.findUnique({
@@ -28,6 +30,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!canDo(session, "deals.edit")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
     const user = session.user as any;
@@ -64,6 +67,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!canDo(session, "deals.delete")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
     await prisma.propertyDeal.delete({ where: { id: Number(id) } });

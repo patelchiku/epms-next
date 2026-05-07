@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import {
@@ -12,14 +13,24 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-const navigation = [
+type NavChild = { name: string; href: string; icon: any };
+type NavItem = {
+  name: string;
+  href?: string;
+  icon: any;
+  perm?: string;
+  children?: NavChild[];
+};
+
+const navigation: NavItem[] = [
   { name: "Dashboard",    href: "/dashboard",  icon: LayoutDashboard },
-  { name: "Enquiry",      href: "/enquiries",  icon: FileText },
-  { name: "Property",     href: "/properties", icon: Home },
-  { name: "Property Deal",href: "/deals",      icon: Handshake },
+  { name: "Enquiry",      href: "/enquiries",  icon: FileText,       perm: "enquiry.view" },
+  { name: "Property",     href: "/properties", icon: Home,           perm: "property.view" },
+  { name: "Property Deal",href: "/deals",      icon: Handshake,      perm: "deals.view" },
   {
     name: "Master",
     icon: Settings,
+    perm: "master.view",
     children: [
       { name: "Areas",          href: "/master/areas",          icon: MapPin },
       { name: "Buildings",      href: "/master/buildings",      icon: Building2 },
@@ -37,17 +48,30 @@ const navigation = [
       { name: "Roles",          href: "/master/roles",          icon: UserCog },
     ],
   },
-  { name: "Users",     href: "/users",     icon: Users },
-  { name: "Approvals", href: "/approvals", icon: CheckCircle2 },
-  { name: "Settings",  href: "/settings",  icon: SlidersHorizontal },
+  { name: "Users",     href: "/users",     icon: Users,          perm: "users.view" },
+  { name: "Approvals", href: "/approvals", icon: CheckCircle2,   perm: "approvals.view" },
+  { name: "Settings",  href: "/settings",  icon: SlidersHorizontal, perm: "settings.view" },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const [openGroup, setOpenGroup] = useState<string | null>(
     pathname.startsWith("/master") ? "Master" : null
   );
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const roleId: number = (session?.user as any)?.roleId ?? 0;
+  const userPerms: string[] = (session?.user as any)?.permissions ?? [];
+  const isAdmin = roleId === 1;
+
+  function canSee(perm?: string): boolean {
+    if (!perm) return true;
+    if (isAdmin) return true;
+    return userPerms.includes(perm);
+  }
+
+  const visibleNav = navigation.filter((item) => canSee(item.perm));
 
   return (
     <>
@@ -81,7 +105,7 @@ export default function Sidebar() {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
-          {navigation.map((item) => {
+          {visibleNav.map((item) => {
             if (item.children) {
               const isOpen = openGroup === item.name;
               const isActive = item.children.some((c) => pathname.startsWith(c.href));

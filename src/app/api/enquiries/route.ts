@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { stringifyMobiles } from "@/lib/utils";
+import { canDo } from "@/lib/permissions";
 
 const createSchema = z.object({
   clientName: z.string().min(1),
@@ -28,6 +29,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!canDo(session, "enquiry.view")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const user = session.user as any;
     const { searchParams } = req.nextUrl;
@@ -94,6 +96,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!canDo(session, "enquiry.create")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const user = session.user as any;
     const body = await req.json();

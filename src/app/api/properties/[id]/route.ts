@@ -1,10 +1,12 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { canDo } from "@/lib/permissions";
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!canDo(session, "property.view")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
   const property = await prisma.property.findUnique({
@@ -30,6 +32,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!canDo(session, "property.edit")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   try {
     const { id } = await params;
@@ -62,6 +65,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!canDo(session, "property.delete")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
   await prisma.property.delete({ where: { id: Number(id) } });

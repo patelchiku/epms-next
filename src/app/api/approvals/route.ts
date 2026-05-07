@@ -1,11 +1,13 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { canDo } from "@/lib/permissions";
 
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!canDo(session, "approvals.view")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const approvals = await prisma.userApproval.findMany({
       orderBy: { id: "desc" },
@@ -25,6 +27,7 @@ export async function PUT(req: NextRequest) {
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!canDo(session, "approvals.manage")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id, approved } = await req.json();
     const record = await prisma.userApproval.update({

@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { canDo } from "@/lib/permissions";
 
 const RESOURCE_MAP: Record<string, () => any> = {
   areas: () => prisma.area,
@@ -25,6 +26,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ reso
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!canDo(session, "master.edit")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { resource, id } = await params;
     const getModel = RESOURCE_MAP[resource];
@@ -44,6 +46,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ res
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!canDo(session, "master.edit")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { resource, id } = await params;
     const getModel = RESOURCE_MAP[resource];

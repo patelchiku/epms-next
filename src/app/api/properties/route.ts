@@ -1,11 +1,13 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { canDo } from "@/lib/permissions";
 
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!canDo(session, "property.view")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { searchParams } = req.nextUrl;
     const page = Number(searchParams.get("page") || 1);
@@ -55,6 +57,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!canDo(session, "property.create")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const user = session.user as any;
     const body = await req.json();

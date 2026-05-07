@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { canDo } from "@/lib/permissions";
 
 const DEFAULTS: { key: string; label: string; value: string }[] = [
   { key: "mb_api_key",         label: "MagicBricks API Key",      value: "" },
@@ -15,6 +16,7 @@ export async function GET() {
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!canDo(session, "settings.view")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const rows = await prisma.appSetting.findMany();
     const map: Record<string, string> = {};
@@ -36,6 +38,7 @@ export async function PUT(req: NextRequest) {
   try {
     const session = await auth();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!canDo(session, "settings.edit")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body: Record<string, string> = await req.json();
 

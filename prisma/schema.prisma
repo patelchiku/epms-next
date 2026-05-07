@@ -61,11 +61,12 @@ model UserLog {
 // ─── ROLES & MENU ACCESS ─────────────────────────────────────────────────────
 
 model Role {
-  id     Int    @id @default(autoincrement()) @map("roleid")
-  name   String @map("r_name") @db.VarChar(100)
-  active Boolean @default(true) @map("r_active")
+  id          Int     @id @default(autoincrement()) @map("roleid")
+  name        String  @map("r_name") @db.VarChar(100)
+  active      Boolean @default(true) @map("r_active")
+  permissions String? @map("r_permissions") @db.Text
 
-  users  User[]
+  users User[]
 
   @@map("he_role")
 }

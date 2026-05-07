@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import { formatDate } from "@/lib/utils";
-import { Plus, Handshake, Eye } from "lucide-react";
+import { Plus, Handshake, Eye, Edit } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -96,7 +96,8 @@ export default function DealsPage() {
                     </td>
                     <td className="table-td">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Link href={`/deals/${row.id}`} className="btn-ghost p-1.5"><Eye className="w-3.5 h-3.5" /></Link>
+                        <Link href={`/deals/${row.id}`} className="btn-ghost p-1.5" title="View"><Eye className="w-3.5 h-3.5" /></Link>
+                        <Link href={`/deals/${row.id}/edit`} className="btn-ghost p-1.5" title="Edit"><Edit className="w-3.5 h-3.5" /></Link>
                       </div>
                     </td>
                   </tr>

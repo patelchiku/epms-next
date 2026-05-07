@@ -30,12 +30,30 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id } = await params;
-    const { payments: _payments, ...dealData } = await req.json();
-    const updated = await prisma.propertyDeal.update({
-      where: { id: Number(id) },
-      data: dealData,
+    const user = session.user as any;
+    const { payments, ...dealData } = await req.json();
+    const dealId = Number(id);
+
+    await prisma.$transaction(async (tx) => {
+      await tx.propertyDeal.update({ where: { id: dealId }, data: dealData });
+      if (Array.isArray(payments)) {
+        await tx.propertyDealPayment.deleteMany({ where: { dealId } });
+        const validPayments = payments.filter((p: any) => p.amount);
+        if (validPayments.length > 0) {
+          await tx.propertyDealPayment.createMany({
+            data: validPayments.map((p: any) => ({
+              dealId,
+              amount: p.amount,
+              date: p.date || null,
+              remark: p.remark || null,
+              userId: Number(user.id),
+            })),
+          });
+        }
+      }
     });
-    return NextResponse.json({ success: true, data: updated });
+
+    return NextResponse.json({ success: true });
   } catch (err) {
     console.error("deal PUT error:", err);
     return NextResponse.json({ error: "Failed to update" }, { status: 500 });

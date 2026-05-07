@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import { formatDate } from "@/lib/utils";
-import { Handshake, User, Home, IndianRupee, Calendar, Trash2, Phone } from "lucide-react";
+import { Handshake, User, IndianRupee, Calendar, Trash2, Phone, Edit } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -47,7 +47,10 @@ export default function DealDetailPage() {
         title={deal.propertyName || `Deal #${deal.id}`}
         breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Deals", href: "/deals" }, { label: `#${deal.id}` }]}
         actions={
-          <button onClick={handleDelete} className="btn-danger"><Trash2 className="w-4 h-4" />Delete</button>
+          <div className="flex items-center gap-2">
+            <Link href={`/deals/${id}/edit`} className="btn-secondary"><Edit className="w-4 h-4" />Edit</Link>
+            <button onClick={handleDelete} className="btn-danger"><Trash2 className="w-4 h-4" />Delete</button>
+          </div>
         }
       />
 

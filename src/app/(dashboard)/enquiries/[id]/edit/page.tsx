@@ -7,11 +7,15 @@ import Header from "@/components/layout/Header";
 import axios from "axios";
 import { toast } from "sonner";
 import { Plus, Trash2, Loader2, Phone } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 export default function EditEnquiryPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as any)?.roleId === 1;
   const [masters, setMasters] = useState<Record<string, any[]>>({});
+  const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -56,10 +60,17 @@ export default function EditEnquiryPage() {
         draftReasonId: e.draftReasonId ?? "",
         isNonUse: e.isNonUse ?? false,
         nonUseId: e.nonUseId ?? "",
+        assignedUserId: e.userId ?? "",
       });
     }).catch(() => toast.error("Failed to load enquiry"))
       .finally(() => setLoading(false));
   }, [id, reset]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetch("/api/users?active=true").then((r) => r.json()).then(setEmployees).catch(() => {});
+    }
+  }, [isAdmin]);
 
   async function onSubmit(data: any) {
     setSaving(true);
@@ -192,6 +203,17 @@ export default function EditEnquiryPage() {
                 <label className="label">Next Follow-up Date</label>
                 <input {...register("nfd")} type="date" className="input" />
               </div>
+              {isAdmin && (
+                <div>
+                  <label className="label">Assign To</label>
+                  <select {...register("assignedUserId")} className="select">
+                    <option value="">-- Assign to employee --</option>
+                    {employees.map((e: any) => (
+                      <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
             <div>
               <label className="label">Remark</label>

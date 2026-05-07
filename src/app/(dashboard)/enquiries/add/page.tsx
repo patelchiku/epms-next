@@ -9,6 +9,7 @@ import Header from "@/components/layout/Header";
 import axios from "axios";
 import { toast } from "sonner";
 import { Plus, Trash2, Loader2, Phone } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 const schema = z.object({
   clientName: z.string().min(1, "Client name is required"),
@@ -22,6 +23,7 @@ const schema = z.object({
   sourceId: z.coerce.number().optional().nullable(),
   statusId: z.coerce.number().optional().nullable(),
   areaId: z.coerce.number().optional().nullable(),
+  assignedUserId: z.coerce.number().optional().nullable(),
   nfd: z.string().optional(),
   remark: z.string().optional(),
   isDraft: z.boolean().default(false),
@@ -35,7 +37,10 @@ type FormData = z.infer<typeof schema>;
 export default function AddEnquiryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as any)?.roleId === 1;
   const [masters, setMasters] = useState<Record<string, any[]>>({});
+  const [employees, setEmployees] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
 
   // Pre-fill from URL params (coming from portal lead "Add" button)
@@ -66,6 +71,12 @@ export default function AddEnquiryPage() {
         .catch(() => { if (attempt < 2) setTimeout(() => load(attempt + 1), 1500); });
     load(0);
   }, []);
+
+  useEffect(() => {
+    if (isAdmin) {
+      axios.get("/api/users?active=true").then((r) => setEmployees(r.data)).catch(() => {});
+    }
+  }, [isAdmin]);
 
   const isDraft = watch("isDraft");
   const isNonUse = watch("isNonUse");
@@ -206,6 +217,17 @@ export default function AddEnquiryPage() {
                 <label className="label">Next Follow-up Date</label>
                 <input {...register("nfd")} type="date" className="input" />
               </div>
+              {isAdmin && (
+                <div>
+                  <label className="label">Assign To</label>
+                  <select {...register("assignedUserId")} className="select">
+                    <option value="">-- Assign to employee --</option>
+                    {employees.map((e: any) => (
+                      <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
             <div>
               <label className="label">Remark</label>

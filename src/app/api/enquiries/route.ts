@@ -24,6 +24,7 @@ const createSchema = z.object({
   remark: z.string().optional(),
   nfd: z.string().optional(),
   areaId: z.number().int().optional().nullable(),
+  assignedUserId: z.number().int().optional().nullable(),
 });
 
 export async function GET(req: NextRequest) {
@@ -148,7 +149,7 @@ export async function POST(req: NextRequest) {
         remark: d.remark || null,
         nfd: d.nfd ? new Date(d.nfd) : null,
         areaId: d.areaId || null,
-        userId: Number(user.id),
+        userId: (user.roleId === 1 && d.assignedUserId) ? d.assignedUserId : Number(user.id),
       },
     });
 

@@ -27,6 +27,7 @@ const updateSchema = z.object({
   draftReasonId: toIntOrNull,
   remark: z.string().optional(),
   nfd: z.string().optional(),
+  assignedUserId: toIntOrNull,
 });
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -93,6 +94,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         draftReasonId: d.draftReasonId ?? null,
         remark: d.remark || null,
         nfd: d.nfd ? new Date(d.nfd) : null,
+        ...((session.user as any).roleId === 1 && d.assignedUserId ? { userId: d.assignedUserId } : {}),
       },
     });
 

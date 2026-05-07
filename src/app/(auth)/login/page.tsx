@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Phone, Lock } from "lucide-react";
+import { Loader2, Phone, Lock, Clock, X } from "lucide-react";
 
 const schema = z.object({
   mobile: z.string().min(10, "Enter valid mobile number"),
@@ -18,6 +18,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showApprovalPopup, setShowApprovalPopup] = useState(false);
 
   const {
     register,
@@ -47,7 +48,7 @@ export default function LoginPage() {
     setLoading(false);
 
     if (result?.error === "PENDING_APPROVAL") {
-      setError("Your login request has been submitted. Please wait for admin approval.");
+      setShowApprovalPopup(true);
     } else if (result?.error === "REJECTED") {
       setError("Your access has been rejected. Contact admin.");
     } else if (result?.error) {
@@ -119,6 +120,51 @@ export default function LoginPage() {
           </form>
         </div>
       </div>
+
+      {/* Pending Approval Popup */}
+      {showApprovalPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
+            <button
+              onClick={() => setShowApprovalPopup(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Animated clock icon */}
+            <div className="relative inline-flex items-center justify-center w-24 h-24 mb-5">
+              <div className="absolute inset-0 rounded-full bg-amber-100 animate-ping opacity-40" />
+              <div className="absolute inset-2 rounded-full bg-amber-50 animate-pulse" />
+              <div className="relative w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center">
+                <Clock className="w-8 h-8 text-amber-500 animate-spin" style={{ animationDuration: "3s" }} />
+              </div>
+            </div>
+
+            <h3 className="text-lg font-bold text-slate-800 mb-2">Waiting for Approval</h3>
+            <p className="text-slate-500 text-sm leading-relaxed mb-1">
+              Your login request has been sent to the admin.
+            </p>
+            <p className="text-slate-500 text-sm leading-relaxed mb-6">
+              You will be able to sign in once the admin approves your access.
+            </p>
+
+            {/* Animated dots */}
+            <div className="flex items-center justify-center gap-1.5 mb-6">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+            </div>
+
+            <button
+              onClick={() => setShowApprovalPopup(false)}
+              className="w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-lg font-medium text-sm transition-colors"
+            >
+              OK, Got it
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

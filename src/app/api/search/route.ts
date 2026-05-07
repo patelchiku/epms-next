@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       properties: [],
     };
 
-    if (canDo(session, "enquiry.view")) {
+    if (canDo(session, "enquiry.view") || !isAdmin) {
       const where: any = {
         OR: [
           { clientName: { contains: q } },
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    if (canDo(session, "property.view")) {
+    if (canDo(session, "property.view") || !isAdmin) {
       const where: any = {
         OR: [
           { ownerName: { contains: q } },

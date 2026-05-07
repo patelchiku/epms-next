@@ -7,7 +7,7 @@ import Header from "@/components/layout/Header";
 import { formatDate, parseMobiles } from "@/lib/utils";
 import {
   Plus, Search, Phone, Eye, Edit, Trash2, MessageSquare,
-  SlidersHorizontal, X, Crosshair
+  SlidersHorizontal, X, Crosshair, MessageCircle, Loader2
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
@@ -64,6 +64,14 @@ export default function EnquiriesPage() {
   const [employees, setEmployees] = useState<any[]>([]);
   const pageSize = 20;
 
+  // Followup modal state
+  const [followupEnquiry, setFollowupEnquiry] = useState<{ id: number; name: string; mobile: string } | null>(null);
+  const [followupRemark, setFollowupRemark] = useState("");
+  const [followupNfd, setFollowupNfd] = useState("");
+  const [followupActivityId, setFollowupActivityId] = useState("");
+  const [followupSaving, setFollowupSaving] = useState(false);
+  const [activities, setActivities] = useState<MasterItem[]>([]);
+
   // Load master data once
   useEffect(() => {
     Promise.all([
@@ -72,13 +80,15 @@ export default function EnquiriesPage() {
       axios.get("/api/master/property-types"),
       axios.get("/api/master/bhk-office"),
       axios.get("/api/master/areas"),
+      axios.get("/api/master/activities"),
       ...(isAdmin ? [axios.get("/api/users?active=true")] : []),
-    ]).then(([s, sr, pt, bh, ar, emp]) => {
+    ]).then(([s, sr, pt, bh, ar, act, emp]) => {
       setStatuses(s.data);
       setSources(sr.data);
       setPropTypes(pt.data);
       setBhks(bh.data);
       setAreas(ar.data);
+      setActivities(act.data);
       if (emp) setEmployees(emp.data);
     }).catch(() => {});
   }, [isAdmin]);
@@ -112,6 +122,35 @@ export default function EnquiriesPage() {
       toast.success("Enquiry deleted");
       fetchData();
     } catch { toast.error("Failed to delete"); }
+  }
+
+  function openFollowup(id: number, name: string, mobile: string) {
+    setFollowupEnquiry({ id, name, mobile });
+    setFollowupRemark("");
+    setFollowupNfd("");
+    setFollowupActivityId("");
+  }
+
+  async function handleFollowupSubmit() {
+    if (!followupEnquiry || !followupRemark.trim()) {
+      toast.error("Remark is required");
+      return;
+    }
+    setFollowupSaving(true);
+    try {
+      await axios.post(`/api/enquiries/${followupEnquiry.id}/comments`, {
+        remark: followupRemark,
+        nfd: followupNfd || null,
+        activityId: followupActivityId ? Number(followupActivityId) : null,
+      });
+      toast.success("Follow-up added");
+      setFollowupEnquiry(null);
+      fetchData();
+    } catch {
+      toast.error("Failed to add follow-up");
+    } finally {
+      setFollowupSaving(false);
+    }
   }
 
   function applyFilters() {
@@ -353,6 +392,24 @@ export default function EnquiriesPage() {
                       </td>
                       <td className="table-td">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => openFollowup(row.id, row.clientName, parseMobiles(row.mobileNos)[0] ?? "")}
+                            className="btn-ghost p-1.5 text-violet-600 hover:text-violet-700 hover:bg-violet-50"
+                            title="Add follow-up"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                          {parseMobiles(row.mobileNos)[0] && (
+                            <a
+                              href={`https://api.whatsapp.com/send?phone=91${parseMobiles(row.mobileNos)[0]}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn-ghost p-1.5 text-green-600 hover:text-green-700 hover:bg-green-50"
+                              title="Send WhatsApp"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                            </a>
+                          )}
                           <Link
                             href={`/match?forType=${row.forType}&areaId=${row.areaId || ""}&bhkOfficeId=${row.bhkOfficeId || ""}&propertyTypeId=${row.propertyTypeId || ""}&from=enquiry&refId=${row.id}`}
                             className="btn-ghost p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
@@ -389,6 +446,52 @@ export default function EnquiriesPage() {
           </div>
         </div>
       </div>
+
+      {/* Followup Modal */}
+      {followupEnquiry && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <div>
+                <h3 className="font-semibold text-slate-800">Add Follow-up</h3>
+                <p className="text-xs text-slate-500 mt-0.5">{followupEnquiry.name} · {followupEnquiry.mobile}</p>
+              </div>
+              <button onClick={() => setFollowupEnquiry(null)} className="btn-ghost p-1.5 text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Activity</label>
+                <select value={followupActivityId} onChange={(e) => setFollowupActivityId(e.target.value)} className="input text-sm">
+                  <option value="">-- Select activity --</option>
+                  {activities.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Remark *</label>
+                <textarea
+                  value={followupRemark}
+                  onChange={(e) => setFollowupRemark(e.target.value)}
+                  rows={3}
+                  className="input text-sm resize-none"
+                  placeholder="Enter follow-up notes..."
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Next Follow-up Date</label>
+                <input type="date" value={followupNfd} onChange={(e) => setFollowupNfd(e.target.value)} className="input text-sm" />
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
+              <button onClick={() => setFollowupEnquiry(null)} className="btn-secondary text-sm py-2 px-4">Cancel</button>
+              <button onClick={handleFollowupSubmit} disabled={followupSaving} className="btn-primary text-sm py-2 px-5">
+                {followupSaving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving...</> : "Save Follow-up"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

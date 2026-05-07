@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Loader2, FileText, Home, X } from "lucide-react";
+import { Search, Loader2, FileText, Home, X, Plus } from "lucide-react";
 
 type EnquiryResult = {
   id: number;
@@ -217,7 +217,7 @@ export default function UniversalSearch() {
               )}
             </>
           ) : noResults ? (
-            <div className="px-4 py-8 text-center">
+            <div className="px-4 py-6 text-center">
               <Search className="w-8 h-8 text-slate-200 mx-auto mb-2" />
               <p className="text-sm font-medium text-slate-500">
                 No results for "{query}"
@@ -225,6 +225,22 @@ export default function UniversalSearch() {
               <p className="text-xs text-slate-400 mt-0.5">
                 Try a different mobile number, email or name
               </p>
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <button
+                  onClick={() => navigate("/enquiries/add")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add Enquiry
+                </button>
+                <button
+                  onClick={() => navigate("/properties/add")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-semibold hover:bg-emerald-100 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add Property
+                </button>
+              </div>
             </div>
           ) : null}
         </div>

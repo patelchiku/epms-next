@@ -54,7 +54,6 @@ export async function GET(req: NextRequest) {
               bhkOffice: { select: { name: true } },
               propertyType: { select: { name: true } },
               status: { select: { name: true } },
-              budget: { select: { name: true } },
               user: { select: { firstName: true, lastName: true } },
             },
           })

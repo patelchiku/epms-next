@@ -13,7 +13,7 @@ import { Suspense } from "react";
 type MasterItem = { id: number; name: string };
 
 type MatchProperty = {
-  id: number; forType: number; ownerName: string; ownerMobile: string; price: number;
+  id: number; forType: number; ownerName: string; ownerMobile: string; price: string | null;
   address: string | null;
   building: { name: string } | null;
   flatNumber: string | null;
@@ -29,7 +29,7 @@ type MatchEnquiry = {
   bhkOffice: { name: string } | null;
   area: { name: string } | null;
   status: { name: string } | null;
-  budget: { name: string } | null;
+  budget: string | null;
   createdAt: string;
   user: { firstName: string; lastName: string } | null;
 };
@@ -341,7 +341,7 @@ function MatchPageInner() {
                               {row.bhkOffice && <span className="ml-2 badge badge-slate">{row.bhkOffice.name}</span>}
                             </td>
                             <td className="table-td text-slate-500">{row.area?.name || "—"}</td>
-                            <td className="table-td text-slate-500">{row.budget?.name || "—"}</td>
+                            <td className="table-td text-slate-500">{row.budget || "—"}</td>
                             <td className="table-td">
                               <span className={`badge ${row.forType === 1 ? "badge-blue" : "badge-orange"}`}>
                                 {row.forType === 1 ? "Rent" : "Buy"}

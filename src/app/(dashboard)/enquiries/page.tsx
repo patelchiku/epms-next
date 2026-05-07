@@ -7,7 +7,7 @@ import Header from "@/components/layout/Header";
 import { formatDate, parseMobiles } from "@/lib/utils";
 import {
   Plus, Search, Phone, Eye, Edit, Trash2, MessageSquare,
-  SlidersHorizontal, X, Target2, Crosshair
+  SlidersHorizontal, X, Crosshair
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";

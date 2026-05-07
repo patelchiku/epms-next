@@ -9,7 +9,7 @@ import {
   LayoutDashboard, FileText, Home, Settings, ChevronDown,
   LogOut, Menu, X, MapPin, Building2, Layers, Tag, Briefcase,
   DollarSign, Target, AlertCircle, Activity, UserCog, Users,
-  Handshake, CheckCircle2, Ruler, Sofa, Hash, List, SlidersHorizontal
+  Handshake, CheckCircle2, Ruler, Sofa, Hash, List, SlidersHorizontal, Crosshair
 } from "lucide-react";
 import { useState } from "react";
 
@@ -27,6 +27,7 @@ const navigation: NavItem[] = [
   { name: "Enquiry",      href: "/enquiries",  icon: FileText,       perm: "enquiry.view" },
   { name: "Property",     href: "/properties", icon: Home,           perm: "property.view" },
   { name: "Property Deal",href: "/deals",      icon: Handshake,      perm: "deals.view" },
+  { name: "Match Search", href: "/match",      icon: Crosshair },
   {
     name: "Master",
     icon: Settings,

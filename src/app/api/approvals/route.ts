@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { canDo } from "@/lib/permissions";
+import { logActivity } from "@/lib/activityLog";
 
 export async function GET(req: NextRequest) {
   try {
@@ -35,6 +36,8 @@ export async function PUT(req: NextRequest) {
       data: { approved: Number(approved) },
     });
 
+    const action = Number(approved) === 1 ? "approved" : "rejected";
+    logActivity(Number((session.user as any).id), action, "approval", record.userId, `${action === "approved" ? "Approved" : "Rejected"} user access for user #${record.userId}`);
     return NextResponse.json({ success: true, data: record });
   } catch (err) {
     console.error("approvals PUT error:", err);

@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { canDo } from "@/lib/permissions";
+import { logActivity } from "@/lib/activityLog";
 
 export async function GET(req: NextRequest) {
   try {
@@ -82,6 +83,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    logActivity(Number(user.id), "created", "property", property.id, `Added property: ${body.ownerName || "Unknown"} — ${body.address || `#${property.id}`}`);
     return NextResponse.json({ success: true, data: property }, { status: 201 });
   } catch (err) {
     console.error("properties POST error:", err);

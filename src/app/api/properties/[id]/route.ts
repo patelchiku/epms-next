@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { canDo } from "@/lib/permissions";
+import { logActivity } from "@/lib/activityLog";
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -55,6 +56,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         availableFrom: body.availableFrom ? new Date(body.availableFrom) : null,
       },
     });
+    logActivity(Number((session.user as any).id), "updated", "property", Number(id), `Updated property #${id}: ${body.ownerName || ""}`);
     return NextResponse.json({ success: true, data: updated });
   } catch (err) {
     console.error("property PUT error:", err);
@@ -69,5 +71,6 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
 
   const { id } = await params;
   await prisma.property.delete({ where: { id: Number(id) } });
+  logActivity(Number((session.user as any).id), "deleted", "property", Number(id), `Deleted property #${id}`);
   return NextResponse.json({ success: true });
 }

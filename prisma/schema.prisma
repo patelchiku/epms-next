@@ -29,6 +29,7 @@ model User {
   properties  Property[]
   deals       PropertyDeal[]
   payments    PropertyDealPayment[]
+  activities  SystemActivity[]
 
   @@map("he_users")
 }
@@ -444,6 +445,22 @@ model AcresEnquiry {
   isRemoved   Boolean  @default(false) @map("IsRemoved")
 
   @@map("epms_99acr_enquiry")
+}
+
+// ─── ACTIVITY LOG ─────────────────────────────────────────────────────────────
+
+model SystemActivity {
+  id        Int      @id @default(autoincrement()) @map("sa_id")
+  userId    Int      @map("sa_userid")
+  action    String   @map("sa_action") @db.VarChar(50)
+  entity    String   @map("sa_entity") @db.VarChar(50)
+  entityId  Int?     @map("sa_entityid")
+  title     String   @map("sa_title") @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("sa_createdat")
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("he_system_activity")
 }
 
 // ─── APP SETTINGS ─────────────────────────────────────────────────────────────

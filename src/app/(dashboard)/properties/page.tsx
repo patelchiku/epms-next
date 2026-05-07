@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import { formatDate, formatPrice } from "@/lib/utils";
-import { Plus, Search, Eye, Edit, Trash2, Home } from "lucide-react";
+import { Plus, Search, Eye, Edit, Trash2, Home, Crosshair } from "lucide-react";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -16,6 +17,7 @@ export default function PropertiesPage() {
   const [forType, setForType] = useState("");
   const [loading, setLoading] = useState(true);
   const pageSize = 20;
+  const router = useRouter();
 
   const fetchData = useCallback(async (attempt = 0) => {
     setLoading(true);
@@ -128,6 +130,10 @@ export default function PropertiesPage() {
                     </td>
                     <td className="table-td">
                       <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => router.push(`/match?forType=${row.forType}&areaId=${row.areaId || ""}&bhkOfficeId=${row.bhkOfficeId || ""}&propertyTypeId=${row.propertyTypeId || ""}&from=property&refId=${row.id}`)}
+                          className="btn-ghost p-1.5 hover:text-violet-600" title="Find matching enquiries"
+                        ><Crosshair className="w-3.5 h-3.5" /></button>
                         <Link href={`/properties/${row.id}`} className="btn-ghost p-1.5"><Eye className="w-3.5 h-3.5" /></Link>
                         <Link href={`/properties/${row.id}/edit`} className="btn-ghost p-1.5"><Edit className="w-3.5 h-3.5" /></Link>
                         <button onClick={() => handleDelete(row.id)} className="btn-ghost p-1.5 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>

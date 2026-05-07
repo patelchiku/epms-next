@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { canDo } from "@/lib/permissions";
+import { logActivity } from "@/lib/activityLog";
 
 export async function GET(req: NextRequest) {
   try {
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
       include: { payments: true },
     });
 
+    logActivity(Number(user.id), "created", "deal", deal.id, `Created deal #${deal.id}: ${dealData.clientName || ""}`);
     return NextResponse.json({ success: true, data: deal }, { status: 201 });
   } catch (err) {
     console.error("deals POST error:", err);

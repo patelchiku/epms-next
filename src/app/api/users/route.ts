@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { canDo } from "@/lib/permissions";
+import { logActivity } from "@/lib/activityLog";
 
 export async function GET(req: NextRequest) {
   try {
@@ -46,6 +47,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    logActivity(Number((session.user as any).id), "created", "user", user.id, `Added new user: ${body.firstName} ${body.lastName}`);
     return NextResponse.json({ success: true, data: { id: user.id } }, { status: 201 });
   } catch (err) {
     console.error("users POST error:", err);

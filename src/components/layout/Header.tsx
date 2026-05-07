@@ -5,6 +5,7 @@ import { getInitials } from "@/lib/utils";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import UniversalSearch from "./UniversalSearch";
+import NotificationBell from "./NotificationBell";
 
 type Breadcrumb = { label: string; href?: string };
 
@@ -50,6 +51,7 @@ export default function Header({ title, breadcrumbs, actions }: Props) {
         {/* Right — actions + user */}
         <div className="flex-1 flex items-center justify-end gap-3">
           {actions && <div className="flex items-center gap-2">{actions}</div>}
+          <NotificationBell />
           <div className="flex items-center gap-2.5 pl-3 border-l border-slate-100">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
               {getInitials(user?.name || "U")}

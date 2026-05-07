@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { stringifyMobiles } from "@/lib/utils";
 import { canDo } from "@/lib/permissions";
+import { logActivity } from "@/lib/activityLog";
 
 const toIntOrNull = z.union([z.number().int(), z.string().transform(v => v === "" ? null : parseInt(v, 10))]).nullable().optional();
 const toBool = z.union([z.boolean(), z.string().transform(v => v === "true")]).optional();
@@ -95,6 +96,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       },
     });
 
+    logActivity(Number((session.user as any).id), "updated", "enquiry", Number(id), `Updated enquiry: ${d.clientName}`);
     return NextResponse.json({ success: true, data: updated });
   } catch (err) {
     console.error("enquiry PUT error:", err);
@@ -109,5 +111,6 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
 
   const { id } = await params;
   await prisma.enquiry.delete({ where: { id: Number(id) } });
+  logActivity(Number((session.user as any).id), "deleted", "enquiry", Number(id), `Deleted enquiry #${id}`);
   return NextResponse.json({ success: true });
 }

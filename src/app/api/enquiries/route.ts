@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { stringifyMobiles } from "@/lib/utils";
 import { canDo } from "@/lib/permissions";
+import { logActivity } from "@/lib/activityLog";
 
 const createSchema = z.object({
   clientName: z.string().min(1),
@@ -38,6 +39,19 @@ export async function GET(req: NextRequest) {
     const filter = searchParams.get("filter");
     const search = searchParams.get("search") || "";
 
+    // Advanced filter params
+    const statusId = searchParams.get("statusId");
+    const sourceId = searchParams.get("sourceId");
+    const forType = searchParams.get("forType");
+    const propertyTypeId = searchParams.get("propertyTypeId");
+    const bhkOfficeId = searchParams.get("bhkOfficeId");
+    const areaId = searchParams.get("areaId");
+    const assignedUserId = searchParams.get("userId");
+    const dateFrom = searchParams.get("dateFrom");
+    const dateTo = searchParams.get("dateTo");
+    const showDraft = searchParams.get("showDraft") === "true";
+    const showNonUse = searchParams.get("showNonUse") === "true";
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
@@ -45,9 +59,12 @@ export async function GET(req: NextRequest) {
     const dayAfter = new Date(tomorrow);
     dayAfter.setDate(dayAfter.getDate() + 1);
 
-    const userFilter = user.roleId === 1 ? {} : { userId: Number(user.id) };
+    // Non-admin users see only their own enquiries (unless assignedUserId override by admin)
+    const isAdmin = user.roleId === 1;
+    let userFilter: any = isAdmin ? {} : { userId: Number(user.id) };
+    if (isAdmin && assignedUserId) userFilter = { userId: Number(assignedUserId) };
 
-    let dateFilter = {};
+    let dateFilter: any = {};
     if (filter === "today") dateFilter = { nfd: { gte: today, lt: tomorrow } };
     else if (filter === "tomorrow") dateFilter = { nfd: { gte: tomorrow, lt: dayAfter } };
     else if (filter === "pending") dateFilter = { nfd: { lt: today } };
@@ -55,8 +72,16 @@ export async function GET(req: NextRequest) {
     const where: any = {
       ...userFilter,
       ...dateFilter,
-      isNonUse: false,
-      isDraft: false,
+      ...(showDraft ? {} : { isDraft: false }),
+      ...(showNonUse ? {} : { isNonUse: false }),
+      ...(statusId && { statusId: Number(statusId) }),
+      ...(sourceId && { sourceId: Number(sourceId) }),
+      ...(forType && { forType: Number(forType) }),
+      ...(propertyTypeId && { propertyTypeId: Number(propertyTypeId) }),
+      ...(bhkOfficeId && { bhkOfficeId: Number(bhkOfficeId) }),
+      ...(areaId && { areaId: Number(areaId) }),
+      ...(dateFrom && { addedAt: { gte: new Date(dateFrom) } }),
+      ...(dateTo && { addedAt: { ...(dateFrom ? { gte: new Date(dateFrom) } : {}), lte: new Date(dateTo + "T23:59:59") } }),
       ...(search && {
         OR: [
           { clientName: { contains: search } },
@@ -127,6 +152,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    logActivity(Number(user.id), "created", "enquiry", enquiry.id, `Added enquiry: ${d.clientName}`);
     return NextResponse.json({ success: true, data: enquiry }, { status: 201 });
   } catch (err) {
     console.error("enquiries POST error:", err);

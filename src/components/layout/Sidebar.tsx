@@ -12,7 +12,6 @@ import {
   Handshake, CheckCircle2, Ruler, Sofa, Hash, List, SlidersHorizontal
 } from "lucide-react";
 import { useState } from "react";
-import UniversalSearch from "./UniversalSearch";
 
 type NavChild = { name: string; href: string; icon: any };
 type NavItem = {
@@ -102,11 +101,6 @@ export default function Sidebar() {
             <p className="text-sm font-bold text-white leading-tight">Top Space</p>
             <p className="text-[10px] text-slate-400 font-medium tracking-wide uppercase">Property CRM</p>
           </div>
-        </div>
-
-        {/* Universal Search */}
-        <div className="border-b border-white/10">
-          <UniversalSearch />
         </div>
 
         {/* Nav */}

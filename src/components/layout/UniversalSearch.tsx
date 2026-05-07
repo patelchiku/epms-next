@@ -39,7 +39,9 @@ export default function UniversalSearch() {
   const hasResults =
     results && (results.enquiries.length > 0 || results.properties.length > 0);
   const noResults =
-    results && results.enquiries.length === 0 && results.properties.length === 0;
+    results &&
+    results.enquiries.length === 0 &&
+    results.properties.length === 0;
 
   const fetchResults = useCallback(async (q: string) => {
     if (q.length < 2) {
@@ -73,10 +75,12 @@ export default function UniversalSearch() {
     };
   }, [query, fetchResults]);
 
-  // Close on outside click
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     }
@@ -84,7 +88,6 @@ export default function UniversalSearch() {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
-  // Close on ESC
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -111,10 +114,10 @@ export default function UniversalSearch() {
   }
 
   return (
-    <div ref={containerRef} className="relative px-3 py-2">
+    <div ref={containerRef} className="relative w-full max-w-md">
       {/* Input */}
       <div className="relative flex items-center">
-        <Search className="absolute left-3 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+        <Search className="absolute left-3 w-4 h-4 text-slate-400 pointer-events-none" />
         <input
           ref={inputRef}
           type="text"
@@ -123,16 +126,16 @@ export default function UniversalSearch() {
           onFocus={() => {
             if (results && query.length >= 2) setOpen(true);
           }}
-          placeholder="Search by mobile, email, name…"
-          className="w-full bg-white/8 border border-white/10 rounded-xl text-xs text-white placeholder:text-slate-500 pl-8 pr-7 py-2 focus:outline-none focus:border-violet-500/60 focus:bg-white/12 transition-all"
+          placeholder="Search by mobile, email or name…"
+          className="w-full bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 pl-9 pr-8 py-2 focus:outline-none focus:border-violet-400 focus:bg-white focus:ring-2 focus:ring-violet-100 transition-all"
         />
         {loading && (
-          <Loader2 className="absolute right-2.5 w-3 h-3 text-slate-400 animate-spin" />
+          <Loader2 className="absolute right-3 w-3.5 h-3.5 text-slate-400 animate-spin" />
         )}
         {!loading && query.length > 0 && (
           <button
             onClick={clear}
-            className="absolute right-2.5 w-3.5 h-3.5 text-slate-500 hover:text-slate-300"
+            className="absolute right-3 text-slate-400 hover:text-slate-600"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -141,12 +144,12 @@ export default function UniversalSearch() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute left-3 right-3 top-full mt-1 bg-white rounded-xl shadow-2xl border border-slate-100 z-50 overflow-hidden max-h-[420px] overflow-y-auto">
+        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-2xl border border-slate-100 z-50 overflow-hidden max-h-[440px] overflow-y-auto">
           {hasResults ? (
             <>
               {results!.enquiries.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 pt-2.5 pb-1">
+                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 pt-3 pb-1">
                     Leads / Enquiries
                   </p>
                   {results!.enquiries.map((e) => (
@@ -176,8 +179,14 @@ export default function UniversalSearch() {
               )}
 
               {results!.properties.length > 0 && (
-                <div className={results!.enquiries.length > 0 ? "border-t border-slate-100" : ""}>
-                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 pt-2.5 pb-1">
+                <div
+                  className={
+                    results!.enquiries.length > 0
+                      ? "border-t border-slate-100"
+                      : ""
+                  }
+                >
+                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 pt-3 pb-1">
                     Properties
                   </p>
                   {results!.properties.map((p) => (
@@ -194,9 +203,9 @@ export default function UniversalSearch() {
                           {p.ownerName || "Unknown Owner"}
                         </p>
                         <p className="text-xs text-slate-500 truncate">
-                          {p.ownerMobile || ""}
-                          {p.address ? ` · ${p.address}` : ""}
-                          {p.flatNumber ? ` · Flat ${p.flatNumber}` : ""}
+                          {[p.ownerMobile, p.address, p.flatNumber ? `Flat ${p.flatNumber}` : null]
+                            .filter(Boolean)
+                            .join(" · ")}
                         </p>
                       </div>
                       <span className="text-[10px] text-slate-400 mt-0.5 flex-shrink-0">
@@ -208,11 +217,13 @@ export default function UniversalSearch() {
               )}
             </>
           ) : noResults ? (
-            <div className="px-4 py-6 text-center">
+            <div className="px-4 py-8 text-center">
               <Search className="w-8 h-8 text-slate-200 mx-auto mb-2" />
-              <p className="text-sm text-slate-500">No results for "{query}"</p>
+              <p className="text-sm font-medium text-slate-500">
+                No results for "{query}"
+              </p>
               <p className="text-xs text-slate-400 mt-0.5">
-                Try a different mobile number or email
+                Try a different mobile number, email or name
               </p>
             </div>
           ) : null}

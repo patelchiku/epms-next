@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { getInitials } from "@/lib/utils";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import UniversalSearch from "./UniversalSearch";
 
 type Breadcrumb = { label: string; href?: string };
 
@@ -19,15 +20,18 @@ export default function Header({ title, breadcrumbs, actions }: Props) {
 
   return (
     <header className="bg-white border-b border-slate-100 sticky top-0 z-20">
-      <div className="flex items-center justify-between h-16 px-6">
-        <div>
+      <div className="flex items-center h-16 px-6 gap-4">
+        {/* Left — title & breadcrumbs */}
+        <div className="flex-1 min-w-0">
           {breadcrumbs && breadcrumbs.length > 0 && (
             <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-0.5">
               {breadcrumbs.map((b, i) => (
                 <span key={i} className="flex items-center gap-1.5">
                   {i > 0 && <ChevronRight className="w-3 h-3" />}
                   {b.href ? (
-                    <Link href={b.href} className="hover:text-violet-600 transition-colors">{b.label}</Link>
+                    <Link href={b.href} className="hover:text-violet-600 transition-colors">
+                      {b.label}
+                    </Link>
                   ) : (
                     <span className="text-slate-500 font-medium">{b.label}</span>
                   )}
@@ -35,10 +39,16 @@ export default function Header({ title, breadcrumbs, actions }: Props) {
               ))}
             </div>
           )}
-          <h1 className="text-lg font-bold text-slate-900 leading-tight">{title}</h1>
+          <h1 className="text-lg font-bold text-slate-900 leading-tight truncate">{title}</h1>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Center — universal search */}
+        <div className="flex-[2] max-w-lg">
+          <UniversalSearch />
+        </div>
+
+        {/* Right — actions + user */}
+        <div className="flex-1 flex items-center justify-end gap-3">
           {actions && <div className="flex items-center gap-2">{actions}</div>}
           <div className="flex items-center gap-2.5 pl-3 border-l border-slate-100">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">

@@ -10,14 +10,36 @@ export async function GET(req: NextRequest) {
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!canDo(session, "property.view")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+    const user = session.user as any;
+    const isAdmin = user.roleId === 1;
+
     const { searchParams } = req.nextUrl;
     const page = Number(searchParams.get("page") || 1);
     const pageSize = Number(searchParams.get("pageSize") || 20);
     const search = searchParams.get("search") || "";
     const forType = searchParams.get("forType");
+    const propertyTypeId = searchParams.get("propertyTypeId");
+    const bhkOfficeId = searchParams.get("bhkOfficeId");
+    const areaId = searchParams.get("areaId");
+    const statusId = searchParams.get("statusId");
+    const sourceId = searchParams.get("sourceId");
+    const assignedUserId = searchParams.get("userId");
+    const dateFrom = searchParams.get("dateFrom");
+    const dateTo = searchParams.get("dateTo");
+
+    const userFilter: any = isAdmin ? {} : { userId: Number(user.id) };
+    if (isAdmin && assignedUserId) userFilter.userId = Number(assignedUserId);
 
     const where: any = {
+      ...userFilter,
       ...(forType && { forType: Number(forType) }),
+      ...(propertyTypeId && { propertyTypeId: Number(propertyTypeId) }),
+      ...(bhkOfficeId && { bhkOfficeId: Number(bhkOfficeId) }),
+      ...(areaId && { areaId: Number(areaId) }),
+      ...(statusId && { statusId: Number(statusId) }),
+      ...(sourceId && { sourceId: Number(sourceId) }),
+      ...(dateFrom && { addedAt: { gte: new Date(dateFrom) } }),
+      ...(dateTo && { addedAt: { ...(dateFrom ? { gte: new Date(dateFrom) } : {}), lte: new Date(dateTo + "T23:59:59") } }),
       ...(search && {
         OR: [
           { ownerName: { contains: search } },
